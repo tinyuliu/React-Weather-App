@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
 import styled from '@emotion/styled'; 
 
-import { ReactComponent as CloudyIcon } from '../images/day-cloudy.svg';
 import { ReactComponent as AirFlowIcon } from '../images/airFlow.svg';
 import { ReactComponent as RainIcon } from '../images/rain.svg';
 import { ReactComponent as RedoIcon } from '../images/refresh.svg';
 import WeatherIcon from './WeatherIcon';
+
+import sunriseAndSunsetData from '../sunrise-sunset.json';
 
 const Container = styled.div`
   background-color: #ededed;
@@ -160,6 +161,38 @@ const fetchWeatherForecast = () => {
     });
 };
 
+const getMoment = (locationName) => {
+  const location = sunriseAndSunsetData.find(
+    (data) => data.locationName === locationName
+  );
+
+  if (!location) return null;
+
+  const now = new Date();
+  const nowDate = Intl.DateTimeFormat('zh-TW', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  })
+    .format(now)
+    .replace(/\//g, '-');
+
+  const locationDate =
+    location.time && location.time.find((time) => time.dataTime === nowDate);
+  const sunriseTimestamp = new Date(
+    `${locationDate.dataTime} ${locationDate.sunrise}`
+  ).getTime();
+  const sunsetTimestamp = new Date(
+    `${locationDate.dataTime} ${locationDate.sunset}`
+  ).getTime();
+  const nowTimeStamp = now.getTime();
+
+  return sunriseTimestamp <= nowTimeStamp && nowTimeStamp <= sunsetTimestamp
+    ? 'day'
+    : 'night';
+};
+
+
 const WeatherApp = () => {
   console.log('--- invoke function component ---');
   const [weatherElement, setWeatherElement] = useState({
@@ -198,6 +231,10 @@ const WeatherApp = () => {
     fetchData();
   }, [fetchData]);
 
+  const moment = useMemo(() => getMoment(weatherElement.locationName), [
+    weatherElement.locationName,
+  ]);
+
   return (
     <Container>
       {console.log('render')}
@@ -212,7 +249,7 @@ const WeatherApp = () => {
           </Temperature>
           <WeatherIcon
             currentWeatherCode={weatherElement.weatherCode}
-            moment="night" 
+            moment={moment || 'day'} 
           />
         </CurrentWeather>
         <AirFlow>

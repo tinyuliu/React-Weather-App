@@ -16,6 +16,7 @@ import { ReactComponent as NightFog } from '../images/night-fog.svg';
 import { ReactComponent as NightPartiallyClearWithRain } from '../images/night-partially-clear-with-rain.svg';
 import { ReactComponent as NightSnowing } from '../images/night-snowing.svg';
 
+
 const IconContainer = styled.div`
     flext-basis: 30%;
 `;
