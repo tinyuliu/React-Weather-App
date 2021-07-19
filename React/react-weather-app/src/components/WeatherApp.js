@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import styled from '@emotion/styled'; 
 
@@ -116,7 +116,12 @@ const WeatherApp = () => {
     humid: 0.88,
   });
 
-  const handleClick = () => {
+  useEffect(()=> {
+    console.log('execute function in useEffect');
+    fetchCurrentWeather();
+  }, []);
+
+  const fetchCurrentWeather = () => {
     fetch(
       'https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=CWB-CAE05173-BB3A-4BE1-A687-7F8ADBE5A745&locationName=臺北'
     )
@@ -167,7 +172,7 @@ const WeatherApp = () => {
           <RainIcon />  
           {Math.round(currentWeather.humid * 100)} %
         </Rain>
-        <Redo onClick={handleClick}>
+        <Redo onClick={fetchCurrentWeather}>
           最後觀測時間：
           {new Intl.DateTimeFormat('zh-TW', {
             hour: 'numeric',
