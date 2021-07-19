@@ -4,10 +4,11 @@ import styled from '@emotion/styled';
 
 import { ReactComponent as AirFlowIcon } from '../images/airFlow.svg';
 import { ReactComponent as RainIcon } from '../images/rain.svg';
-import { ReactComponent as RedoIcon } from '../images/refresh.svg';
+import { ReactComponent as RefreshIcon } from '../images/refresh.svg';
 import WeatherIcon from './WeatherIcon';
 
 import sunriseAndSunsetData from '../sunrise-sunset.json';
+import { ReactComponent as LoadingIcon } from '../images/loading.svg';
 
 const Container = styled.div`
   background-color: #ededed;
@@ -86,7 +87,7 @@ const Rain = styled.div`
   }
 `;
 
-const Redo = styled.div`
+const Refresh = styled.div`
   position: absolute;
   right: 15px;
   bottom: 15px;
@@ -205,7 +206,20 @@ const WeatherApp = () => {
     weatherCode: 0,
     rainPossibility: 0,
     comfortability: '',
+    isLoading: true,
   });
+
+  const {
+    observationTime,
+    locationName,
+    temperature,
+    windSpeed,
+    description,
+    weatherCode,
+    rainPossibility,
+    comfortability,
+    isLoading,
+  } = weatherElement;
 
   const fetchData = useCallback(() => {
     const fetchingData = async () => {
@@ -217,8 +231,14 @@ const WeatherApp = () => {
       setWeatherElement({
         ...currentWeather,
         ...weatherForecast,
+        isLoading: false,
       });
     };
+
+    setWeatherElement(prevState => ({
+      ...prevState,
+      isLoading: true,
+    }));
 
     fetchingData();
   }, []);
@@ -234,43 +254,44 @@ const WeatherApp = () => {
   const moment = useMemo(() => getMoment(weatherElement.locationName), [
     weatherElement.locationName,
   ]);
+  
 
   return (
     <Container>
       {console.log('render')}
       <WeatherCard>
-        <Location>{weatherElement.locationName}</Location>
+        <Location>{locationName}</Location>
         <Description>
-          {weatherElement.description} {weatherElement.comfortability}
+          {description} {comfortability}
         </Description>
         <CurrentWeather>
           <Temperature>
-            {Math.round(weatherElement.temperature)} <Celsius>°C</Celsius>
+            {Math.round(temperature)} <Celsius>°C</Celsius>
           </Temperature>
           <WeatherIcon
-            currentWeatherCode={weatherElement.weatherCode}
+            currentWeatherCode={weatherCode}
             moment={moment || 'day'} 
           />
         </CurrentWeather>
         <AirFlow>
           <AirFlowIcon />
-          {weatherElement.windSpeed} m/h
+          {windSpeed} m/h
         </AirFlow>
         <Rain>
           <RainIcon />
-          {Math.round(weatherElement.rainPossibility)} %
+          {Math.round(rainPossibility)} %
         </Rain>
 
-        <Redo
-          onClick={fetchData}
+        <Refresh
+          onClick={fetchData} isLoading={isLoading}
         >
           最後觀測時間：
           {new Intl.DateTimeFormat('zh-TW', {
             hour: 'numeric',
             minute: 'numeric',
-          }).format(new Date(weatherElement.observationTime))}{' '}
-          <RedoIcon />
-        </Redo>
+          }).format(new Date(observationTime))}{' '}
+          {isLoading ? <LoadingIcon /> : <RefreshIcon />}
+        </Refresh>
       </WeatherCard>
     </Container>
   );
