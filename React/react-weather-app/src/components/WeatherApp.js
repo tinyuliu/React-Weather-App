@@ -7,6 +7,7 @@ import sunriseAndSunsetData from '../sunrise-sunset.json';
 import WeatherCard from './WeatherCard';
 import useWeatherApi from '../hooks/use-weatherApi';
 import WeatherSetting from './WeatherSetting';
+import { findLocation } from '../utils';
 
 const theme = {
   light: {
@@ -70,12 +71,16 @@ const getMoment = (locationName) => {
 
 
 const WeatherApp = () => {
-  const [weatherElement, fetchData] = useWeatherApi();
+  const storageCity = localStorage.getItem('cityName');
+  const [currentCity, setCurrentCity] = useState(storageCity || '臺北市');
+  const currentLocation = findLocation(currentCity) || {};
+
+  const [weatherElement, fetchData] = useWeatherApi(currentLocation);
   const [currentTheme, setCurrentTheme] = useState('light');
   const [currentPage, setCurrentPage] = useState('WeatherCard');
 
-  const moment = useMemo(() => getMoment(weatherElement.locationName), [
-    weatherElement.locationName,
+  const moment = useMemo(() => getMoment(currentLocation.sunriseCityName), [
+    currentLocation.sunriseCityName,
   ]);
 
   // 根據 moment 決定要使用亮色或暗色主題
@@ -83,12 +88,16 @@ const WeatherApp = () => {
     setCurrentTheme(moment === 'day' ? 'light' : 'dark');
   }, [moment]);
   
+  useEffect(() => {
+    localStorage.setItem('cityName', currentCity);
+  }, [currentCity]);
 
   return (
     <ThemeProvider theme={theme[currentTheme]}>
       <Container>
       {currentPage === 'WeatherCard' && (
           <WeatherCard
+            cityName={currentLocation.cityName}
             weatherElement={weatherElement}
             moment={moment}
             fetchData={fetchData}
@@ -96,7 +105,12 @@ const WeatherApp = () => {
           />
         )}
 
-        {currentPage === 'WeatherSetting' && <WeatherSetting setCurrentPage={setCurrentPage}/>}
+        {currentPage === 'WeatherSetting' && (
+          <WeatherSetting 
+            cityName={currentLocation.cityName}
+            setCurrentCity={setCurrentCity}
+            setCurrentPage={setCurrentPage}/>
+        )}
       </Container>
     </ThemeProvider>
   );

@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 
 
-const fetchCurrentWeather = () => {
+const fetchCurrentWeather = (locationName) => {
     // STEP 3-1：修改函式，把 fetch API 回傳的 Promise 直接回傳出去
     return fetch(
-      'https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=CWB-CAE05173-BB3A-4BE1-A687-7F8ADBE5A745&locationName=臺北',
+      `https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=CWB-CAE05173-BB3A-4BE1-A687-7F8ADBE5A745&locationName=${locationName}`,
     )
       .then(response => response.json())
       .then(data => {
@@ -31,10 +31,10 @@ const fetchCurrentWeather = () => {
       });
   };
   
-  const fetchWeatherForecast = () => {
+  const fetchWeatherForecast = (cityName) => {
     // STEP 4-1：修改函式，把 fetch API 回傳的 Promise 直接回傳出去
     return fetch(
-      'https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=CWB-CAE05173-BB3A-4BE1-A687-7F8ADBE5A745&locationName=臺北市',
+      `https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=CWB-CAE05173-BB3A-4BE1-A687-7F8ADBE5A745&locationName=${cityName}`,
     )
       .then(response => response.json())
       .then(data => {
@@ -60,48 +60,48 @@ const fetchCurrentWeather = () => {
   };
 
 
-const useWeatherApi = () => {
-    const [weatherElement, setWeatherElement] = useState({
-        observationTime: new Date(),
-        locationName: '',
-        humid: 0,
-        temperature: 0,
-        windSpeed: 0,
-        description: '',
-        weatherCode: 0,
-        rainPossibility: 0,
-        comfortability: '',
+const useWeatherApi = (currentLocation) => {
+  const { locationName, cityName } = currentLocation;
+  const [weatherElement, setWeatherElement] = useState({
+      observationTime: new Date(),
+      locationName: '',
+      humid: 0,
+      temperature: 0,
+      windSpeed: 0,
+      description: '',
+      weatherCode: 0,
+      rainPossibility: 0,
+      comfortability: '',
+      isLoading: true,
+    });
+
+    const fetchData = useCallback(() => {
+      const fetchingData = async () => {
+        const [currentWeather, weatherForecast] = await Promise.all([
+          fetchCurrentWeather(locationName),
+          fetchWeatherForecast(cityName),
+        ]);
+    
+        setWeatherElement({
+          ...currentWeather,
+          ...weatherForecast,
+          isLoading: false,
+        });
+      };
+  
+      setWeatherElement(prevState => ({
+        ...prevState,
         isLoading: true,
-      });
+      }));
+  
+      fetchingData();
+    }, [locationName, cityName]);
 
-      const fetchData = useCallback(() => {
-        const fetchingData = async () => {
-          const [currentWeather, weatherForecast] = await Promise.all([
-            fetchCurrentWeather(),
-            fetchWeatherForecast(),
-          ]);
-      
-          setWeatherElement({
-            ...currentWeather,
-            ...weatherForecast,
-            isLoading: false,
-          });
-        };
-    
-        setWeatherElement(prevState => ({
-          ...prevState,
-          isLoading: true,
-        }));
-    
-        fetchingData();
-      }, []);
+    useEffect(() => {
+      fetchData();
+    }, [fetchData]);
 
-      useEffect(() => {
-        console.log('execute function in useEffect');
-        fetchData();
-      }, [fetchData]);
-
-      return [weatherElement, fetchData];
+    return [weatherElement, fetchData];
 
 }
 

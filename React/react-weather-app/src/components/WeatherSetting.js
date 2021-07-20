@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import styled from '@emotion/styled';
 
+import { availableLocations } from '../utils';
+
 const WeatherSettingWrapper = styled.div`
   position: relative;
   min-width: 360px;
@@ -87,17 +89,19 @@ const Save = styled.button`
   }
 `;
 
-const locations = [
-    '嘉義縣', '新北市', '嘉義市', '新竹縣', '新竹市',
-    '臺北市', '臺南市', '宜蘭縣', '苗栗縣', '雲林縣',
-    '花蓮縣', '臺中市', '臺東縣', '桃園市', '南投縣',
-    '高雄市', '金門縣', '屏東縣', '基隆市', '澎湖縣',
-    '彰化縣', '連江縣',
-  ];
-  
+// const locations = [
+//     '嘉義縣', '新北市', '嘉義市', '新竹縣', '新竹市',
+//     '臺北市', '臺南市', '宜蘭縣', '苗栗縣', '雲林縣',
+//     '花蓮縣', '臺中市', '臺東縣', '桃園市', '南投縣',
+//     '高雄市', '金門縣', '屏東縣', '基隆市', '澎湖縣',
+//     '彰化縣', '連江縣',
+//   ];
 
-const WeatherSetting = ({setCurrentPage}) => {
-    const [locationName, setLocationName] = useState('臺北市');
+const locations = availableLocations.map((location) => location.cityName);
+
+
+const WeatherSetting = ({setCurrentPage, cityName, setCurrentCity}) => {
+    const [locationName, setLocationName] = useState(cityName);
     const inputLocationRef = useRef(null);
 
     const handleChange = (e) => {
@@ -107,8 +111,12 @@ const WeatherSetting = ({setCurrentPage}) => {
 
     const handleSave = () => {
         if(locations.includes(locationName)) {
-            const locationName = inputLocationRef.current.value;
-            console.log(locationName);
+            // TODO: 儲存地區資訊...
+            console.log(`儲存的地區資訊為：${locationName}`);
+            
+            setCurrentCity(locationName);
+
+            setCurrentPage('WeatherCard');
         } else {
             alert(`儲存失敗：您輸入的 ${locationName} 並非有效的地區`);
             return;
@@ -124,7 +132,7 @@ const WeatherSetting = ({setCurrentPage}) => {
             name="location"
             onChange={handleChange}
             ref={inputLocationRef}
-            defaultValue="臺南市"
+            value={locationName}
             />
           <datalist id="location-list">
             {locations.map(location => (
